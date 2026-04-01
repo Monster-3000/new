@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus Timer – Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-icon">⏱</span>
+        <span class="logo-text">Focus Timer</span>
+      </div>
+      <ul class="sidebar-nav">
+        <li class="nav-item active" data-view="overview">
+          <span class="nav-icon">📊</span>
+          <span>Overview</span>
+        </li>
+        <li class="nav-item" data-view="sites">
+          <span class="nav-icon">🌐</span>
+          <span>Sites</span>
+        </li>
+        <li class="nav-item" data-view="history">
+          <span class="nav-icon">📅</span>
+          <span>History</span>
+        </li>
+        <li class="nav-item" data-view="sessions">
+          <span class="nav-icon">🎯</span>
+          <span>Sessions</span>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="settings-btn" id="btnSettings">⚙️ Settings</button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div>
+          <h1 class="page-title" id="pageTitle">Overview</h1>
+          <p class="page-subtitle" id="pageSubtitle">Your productivity at a glance</p>
+        </div>
+        <div class="topbar-controls">
+          <div class="range-selector">
+            <button class="range-btn active" data-range="7">7 days</button>
+            <button class="range-btn" data-range="30">30 days</button>
+            <button class="range-btn" data-range="today">Today</button>
+          </div>
+          <button class="export-btn" id="btnExport" title="Export CSV">⬇ Export</button>
+        </div>
+      </header>
+
+      <!-- Overview View -->
+      <div id="viewOverview" class="view active">
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+          <div class="summary-card productive">
+            <div class="card-icon">💼</div>
+            <div class="card-body">
+              <div class="card-value" id="totalProductivity">0h 0m</div>
+              <div class="card-label">Productive Time</div>
+              <div class="card-sub" id="pctProductivity">0% of total</div>
+            </div>
+            <div class="card-bar">
+              <div class="bar-fill" id="barProductivity" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="summary-card social">
+            <div class="card-icon">💬</div>
+            <div class="card-body">
+              <div class="card-value" id="totalSocial">0h 0m</div>
+              <div class="card-label">Social Media</div>
+              <div class="card-sub" id="pctSocial">0% of total</div>
+            </div>
+            <div class="card-bar">
+              <div class="bar-fill" id="barSocial" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="summary-card entertainment">
+            <div class="card-icon">🎮</div>
+            <div class="card-body">
+              <div class="card-value" id="totalEntertainment">0h 0m</div>
+              <div class="card-label">Rest & Entertainment</div>
+              <div class="card-sub" id="pctEntertainment">0% of total</div>
+            </div>
+            <div class="card-bar">
+              <div class="bar-fill" id="barEntertainment" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="summary-card uncategorized">
+            <div class="card-icon">❓</div>
+            <div class="card-body">
+              <div class="card-value" id="totalUncategorized">0h 0m</div>
+              <div class="card-label">Uncategorized</div>
+              <div class="card-sub" id="pctUncategorized">0% of total</div>
+            </div>
+            <div class="card-bar">
+              <div class="bar-fill" id="barUncategorized" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+          <div class="chart-card">
+            <h3 class="chart-title">Daily Activity (last N days)</h3>
+            <canvas id="chartDaily" height="200"></canvas>
+          </div>
+          <div class="chart-card chart-small">
+            <h3 class="chart-title">Category Split</h3>
+            <canvas id="chartDonut" height="200"></canvas>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+        </div>
+
+        <!-- Today Details -->
+        <div class="today-section">
+          <h3 class="section-title">Today's Details</h3>
+          <div class="today-grid">
+            <div class="today-stat">
+              <div class="today-stat-label">Sessions Completed</div>
+              <div class="today-stat-value" id="todaySessions">0</div>
+            </div>
+            <div class="today-stat">
+              <div class="today-stat-label">Total Focus Time</div>
+              <div class="today-stat-value" id="todayFocusTime">0m</div>
+            </div>
+            <div class="today-stat">
+              <div class="today-stat-label">Avg Session Length</div>
+              <div class="today-stat-value" id="todayAvgSession">—</div>
+            </div>
+            <div class="today-stat">
+              <div class="today-stat-label">Most Active Category</div>
+              <div class="today-stat-value" id="todayTopCategory">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sites View -->
+      <div id="viewSites" class="view">
+        <div class="sites-header">
+          <input type="text" id="sitesSearch" placeholder="🔍  Search sites..." class="search-input" />
+          <div class="filter-tabs" id="categoryFilter">
+            <button class="filter-tab active" data-cat="all">All</button>
+            <button class="filter-tab" data-cat="productivity">Productive</button>
+            <button class="filter-tab" data-cat="social">Social</button>
+            <button class="filter-tab" data-cat="entertainment">Rest</button>
+            <button class="filter-tab" data-cat="uncategorized">Other</button>
+          </div>
+        </div>
+        <div class="sites-table-wrapper">
+          <table class="sites-table">
+            <thead>
+              <tr>
+                <th>Website</th>
+                <th>Category</th>
+                <th>Time Spent</th>
+                <th>% of Total</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="sitesTableBody">
+              <tr class="empty-row">
+                <td colspan="5">No data yet. Start a focus session!</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- History View -->
+      <div id="viewHistory" class="view">
+        <canvas id="chartHistory" height="280"></canvas>
+        <div class="history-table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Productive</th>
+                <th>Social</th>
+                <th>Rest</th>
+                <th>Sessions</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr class="empty-row">
+                <td colspan="6">No history yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sessions View -->
+      <div id="viewSessions" class="view">
+        <div class="sessions-list" id="sessionsList">
+          <div class="empty-state">No sessions recorded yet. Start focusing!</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Category Override Modal -->
+  <div class="modal-overlay hidden" id="categoryModal">
+    <div class="modal">
+      <h3 class="modal-title">Change Category</h3>
+      <p class="modal-site" id="modalSite"></p>
+      <div class="modal-options">
+        <label class="radio-option">
+          <input type="radio" name="modalCat" value="productivity" /> Productive
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="modalCat" value="social" /> Social
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="modalCat" value="entertainment" /> Rest & Entertainment
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="modalCat" value="uncategorized" /> Uncategorized
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn secondary" id="modalCancel">Cancel</button>
+        <button class="modal-btn primary" id="modalSave">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

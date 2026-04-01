@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus Timer</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <span class="logo">⏱</span>
+        <span class="title">Focus Timer</span>
+      </div>
+      <div class="header-actions">
+        <button id="btnDashboard" class="icon-btn" title="Dashboard">📊</button>
+        <button id="btnSettings" class="icon-btn" title="Settings">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Timer Display -->
+    <section class="timer-section">
+      <div class="timer-ring-container">
+        <svg class="timer-ring" viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="52" />
+          <circle class="ring-progress" id="ringProgress" cx="60" cy="60" r="52" />
+        </svg>
+        <div class="timer-center">
+          <div class="timer-display" id="timerDisplay">25:00</div>
+          <div class="timer-status" id="timerStatus">Ready</div>
+        </div>
+      </div>
+
+      <!-- Duration Preset Buttons -->
+      <div class="duration-presets" id="durationPresets">
+        <button class="preset-btn active" data-minutes="25">25m</button>
+        <button class="preset-btn" data-minutes="50">50m</button>
+        <button class="preset-btn" data-minutes="90">90m</button>
+        <button class="preset-btn custom" id="btnCustom">Custom</button>
+      </div>
+
+      <!-- Custom Duration Input -->
+      <div class="custom-duration hidden" id="customDuration">
+        <input type="number" id="customMinutes" min="1" max="480" placeholder="Minutes" />
+        <button id="btnSetCustom">Set</button>
+      </div>
+
+      <!-- Timer Controls -->
+      <div class="timer-controls">
+        <button class="ctrl-btn secondary" id="btnStop" disabled title="Stop">■</button>
+        <button class="ctrl-btn primary" id="btnStartPause" title="Start">▶ Start</button>
+      </div>
+    </section>
+
+    <!-- Today's Quick Stats -->
+    <section class="stats-section">
+      <div class="stats-header">
+        <span class="stats-title">Today's Focus</span>
+        <span class="stats-date" id="statsDate"></span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card productivity">
+          <div class="stat-icon">💼</div>
+          <div class="stat-info">
+            <div class="stat-value" id="statProductivity">0m</div>
+            <div class="stat-label">Productive</div>
+          </div>
+        </div>
+        <div class="stat-card social">
+          <div class="stat-icon">💬</div>
+          <div class="stat-info">
+            <div class="stat-value" id="statSocial">0m</div>
+            <div class="stat-label">Social</div>
+          </div>
+        </div>
+        <div class="stat-card entertainment">
+          <div class="stat-icon">🎮</div>
+          <div class="stat-info">
+            <div class="stat-value" id="statEntertainment">0m</div>
+            <div class="stat-label">Rest</div>
+          </div>
+        </div>
+        <div class="stat-card sessions">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-info">
+            <div class="stat-value" id="statSessions">0</div>
+            <div class="stat-label">Sessions</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Tab Info -->
+      <div class="active-tab-info" id="activeTabInfo">
+        <div class="active-tab-label">Active tab:</div>
+        <div class="active-tab-details">
+          <span class="active-tab-domain" id="activeTabDomain">—</span>
+          <span class="active-tab-category" id="activeTabCategory"></span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
