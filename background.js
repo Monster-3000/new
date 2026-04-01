@@ -184,6 +184,13 @@ async function completeTimer(timerState) {
   // Save session to history
   await saveSession(timerState);
 
+  // Reset for next session so the popup doesn't stay stuck at 00:00
+  timerState.elapsedTime = 0;
+  timerState.startTime = null;
+  timerState.lastTickTime = null;
+  timerState.sessionId = null;
+  timerState.currentTabs = {};
+
   await chrome.storage.local.set({ timerState });
   stopTrackingInterval();
 
