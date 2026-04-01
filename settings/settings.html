@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus Timer – Settings</title>
+  <link rel="stylesheet" href="settings.css" />
+</head>
+<body>
+  <div class="settings-app">
+    <!-- Sidebar / Nav -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-icon">⏱</span>
+        <span class="logo-text">Focus Timer</span>
+      </div>
+      <ul class="sidebar-nav">
+        <li class="nav-item" id="navDashboard">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Settings Content -->
+    <main class="settings-main">
+      <div class="settings-header">
+        <h1>Settings</h1>
+        <p class="settings-subtitle">Customize your Focus Timer experience</p>
+      </div>
+
+      <!-- Timer Section -->
+      <section class="settings-section">
+        <h2 class="section-title">⏱ Timer</h2>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Default Focus Duration</div>
+            <div class="setting-desc">How long each focus session lasts by default</div>
+          </div>
+          <div class="setting-control">
+            <input type="number" id="defaultDuration" min="1" max="480" value="25" class="number-input" />
+            <span class="input-unit">minutes</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Enable Notifications</div>
+            <div class="setting-desc">Show a notification when a session completes</div>
+          </div>
+          <div class="setting-control">
+            <label class="toggle">
+              <input type="checkbox" id="notificationsEnabled" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Enable Sound</div>
+            <div class="setting-desc">Play a sound when the timer completes (popup page)</div>
+          </div>
+          <div class="setting-control">
+            <label class="toggle">
+              <input type="checkbox" id="soundEnabled" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Categories Section -->
+      <section class="settings-section">
+        <h2 class="section-title">🏷️ Website Categories</h2>
+        <p class="section-desc">
+          Manage which websites belong to each productivity category.
+          Drag websites between categories or add new ones.
+        </p>
+
+        <div class="categories-grid">
+          <!-- Productivity -->
+          <div class="category-panel">
+            <div class="category-panel-header productivity">
+              <span class="cat-icon">💼</span>
+              <span class="cat-name">Productive</span>
+              <span class="cat-count" id="countProductivity">0</span>
+            </div>
+            <div class="category-sites" id="sitesProductivity"></div>
+            <div class="add-site-row">
+              <input type="text" class="add-site-input" id="addProductivity" placeholder="Add domain (e.g. notion.so)" />
+              <button class="add-site-btn" data-cat="productivity">+</button>
+            </div>
+          </div>
+
+          <!-- Social -->
+          <div class="category-panel">
+            <div class="category-panel-header social">
+              <span class="cat-icon">💬</span>
+              <span class="cat-name">Social</span>
+              <span class="cat-count" id="countSocial">0</span>
+            </div>
+            <div class="category-sites" id="sitesSocial"></div>
+            <div class="add-site-row">
+              <input type="text" class="add-site-input" id="addSocial" placeholder="Add domain (e.g. twitter.com)" />
+              <button class="add-site-btn" data-cat="social">+</button>
+            </div>
+          </div>
+
+          <!-- Entertainment -->
+          <div class="category-panel">
+            <div class="category-panel-header entertainment">
+              <span class="cat-icon">🎮</span>
+              <span class="cat-name">Rest & Entertainment</span>
+              <span class="cat-count" id="countEntertainment">0</span>
+            </div>
+            <div class="category-sites" id="sitesEntertainment"></div>
+            <div class="add-site-row">
+              <input type="text" class="add-site-input" id="addEntertainment" placeholder="Add domain (e.g. youtube.com)" />
+              <button class="add-site-btn" data-cat="entertainment">+</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data Section -->
+      <section class="settings-section">
+        <h2 class="section-title">🗄️ Data</h2>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Clear All Data</div>
+            <div class="setting-desc">Delete all tracked usage history. This cannot be undone.</div>
+          </div>
+          <div class="setting-control">
+            <button class="danger-btn" id="btnClearData">Clear Data</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Reset Categories to Default</div>
+            <div class="setting-desc">Restore the default website category assignments.</div>
+          </div>
+          <div class="setting-control">
+            <button class="secondary-btn" id="btnResetCategories">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Save Bar -->
+      <div class="save-bar">
+        <span class="save-status" id="saveStatus"></span>
+        <button class="save-btn" id="btnSave">Save Settings</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay hidden" id="confirmModal">
+    <div class="modal">
+      <h3 class="modal-title" id="confirmTitle">Are you sure?</h3>
+      <p class="modal-message" id="confirmMessage"></p>
+      <div class="modal-actions">
+        <button class="modal-btn secondary" id="confirmCancel">Cancel</button>
+        <button class="modal-btn danger" id="confirmOk">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>
