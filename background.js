@@ -72,6 +72,7 @@ async function initStorage() {
     },
     categories: DEFAULT_CATEGORIES,
     usageData: {},
+    passiveState: { domain: null, lastTime: null },
     settings: {
       defaultDuration: 25,
       notificationsEnabled: true,
@@ -89,10 +90,7 @@ async function initStorage() {
   }
 }
 
-// ─── Tab Tracking State ───────────────────────────────────────────────────────
-let lastActiveTab = null;
-let lastActiveTime = null;
-
+// ─── Tab Tracking Helpers ─────────────────────────────────────────────────────
 async function getActiveTab() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -128,6 +126,54 @@ async function recordTimeSpent(domain, seconds) {
   await chrome.storage.local.set({ usageData });
 }
 
+// ─── Passive (Always-On) Tab Tracking ────────────────────────────────────────
+// Flush seconds accumulated on the currently tracked domain, then switch to the
+// new active tab. Uses storage so state survives MV3 service-worker restarts.
+async function passiveFlushAndUpdate() {
+  const { passiveState } = await chrome.storage.local.get({
+    passiveState: { domain: null, lastTime: null }
+  });
+  const now = Date.now();
+
+  // Record time spent on the previous domain
+  if (passiveState.domain && passiveState.lastTime) {
+    const secs = Math.floor((now - passiveState.lastTime) / 1000);
+    if (secs > 0) await recordTimeSpent(passiveState.domain, secs);
+  }
+
+  // Switch to whatever tab is active now
+  const tab = await getActiveTab();
+  const domain = tab && tab.url ? extractDomain(tab.url) : null;
+  await chrome.storage.local.set({ passiveState: { domain, lastTime: now } });
+}
+
+// User switches tabs
+chrome.tabs.onActivated.addListener(() => passiveFlushAndUpdate());
+
+// User navigates to a new URL within the active tab
+chrome.tabs.onUpdated.addListener((_id, changeInfo, tab) => {
+  if (changeInfo.url && tab.active) passiveFlushAndUpdate();
+});
+
+// Browser window gains or loses focus (user switches to another app)
+chrome.windows.onFocusChanged.addListener(async (windowId) => {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    // Lost focus — flush accumulated time and stop counting
+    const { passiveState } = await chrome.storage.local.get({
+      passiveState: { domain: null, lastTime: null }
+    });
+    const now = Date.now();
+    if (passiveState.domain && passiveState.lastTime) {
+      const secs = Math.floor((now - passiveState.lastTime) / 1000);
+      if (secs > 0) await recordTimeSpent(passiveState.domain, secs);
+    }
+    await chrome.storage.local.set({ passiveState: { domain: null, lastTime: null } });
+  } else {
+    // Gained focus — resume tracking with the current active tab
+    await passiveFlushAndUpdate();
+  }
+});
+
 // ─── Tick: Called Every Minute During Active Timer ────────────────────────────
 async function tick() {
   const { timerState } = await chrome.storage.local.get({ timerState: {} });
@@ -142,15 +188,11 @@ async function tick() {
   const deltaSecs = Math.floor((now - lastTick) / 1000);
   timerState.lastTickTime = now;
 
-  // Track active tab
+  // Track active tab for session metadata (which sites were visited during this session)
   const tab = await getActiveTab();
   if (tab && tab.url) {
     const domain = extractDomain(tab.url);
     if (domain) {
-      // Record time delta for the current domain
-      await recordTimeSpent(domain, deltaSecs > 0 ? deltaSecs : 60);
-
-      // Update current session snapshot in timerState
       if (!timerState.currentTabs) timerState.currentTabs = {};
       timerState.currentTabs[domain] = (timerState.currentTabs[domain] || 0) + (deltaSecs > 0 ? deltaSecs : 60);
     }
@@ -165,7 +207,13 @@ async function tick() {
   await chrome.storage.local.set({ timerState });
 }
 
-// ─── Start Tracking Interval ──────────────────────────────────────────────────
+// ─── Start / Stop Tracking Intervals ─────────────────────────────────────────
+function startPassiveTracking() {
+  // Always-on alarm — records browsing time regardless of whether the timer is running.
+  // Chrome MV3 minimum alarm period is 1 minute; events (onActivated etc.) handle finer granularity.
+  chrome.alarms.create('passiveTrackTick', { periodInMinutes: 1 });
+}
+
 function startTrackingInterval() {
   // Chrome MV3 minimum alarm period is 1 minute.
   // Real-time UI updates are handled by the popup's own setInterval.
@@ -321,16 +369,22 @@ async function handleMessage(message) {
 
 // ─── Alarm Handler ────────────────────────────────────────────────────────────
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === 'focusTimerTick') {
-    tick();
-  }
+  if (alarm.name === 'focusTimerTick') tick();
+  if (alarm.name === 'passiveTrackTick') passiveFlushAndUpdate();
 });
 
 // ─── Extension Install / Startup ──────────────────────────────────────────────
-chrome.runtime.onInstalled.addListener(initStorage);
+chrome.runtime.onInstalled.addListener(async () => {
+  await initStorage();
+  startPassiveTracking();
+  await passiveFlushAndUpdate(); // seed passiveState with the current active tab
+});
+
 chrome.runtime.onStartup.addListener(async () => {
   await initStorage();
-  // Resume tracking if timer was running (unlikely with MV3 but handle gracefully)
+  startPassiveTracking();
+  await passiveFlushAndUpdate(); // seed passiveState with the current active tab
+  // Resume focus-timer tracking if a session was running
   const { timerState } = await chrome.storage.local.get({ timerState: {} });
   if (timerState.isRunning) {
     startTrackingInterval();
